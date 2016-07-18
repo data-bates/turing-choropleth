@@ -1,0 +1,18 @@
+body {
+  background: #fff;
+  background-color: #fff;
+}
+
+div.left-column {
+	float: left;
+	width: 50%;
+}
+
+div.right-column {
+	float: right;
+	width: 50%;
+}
+
+img.small {
+  width: 100px;
+}

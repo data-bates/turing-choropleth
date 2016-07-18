@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Small Businesses</title>
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	<script src="https://d3js.org/topojson.v1.min.js"></script>
+	<script src="https://d3js.org/queue.v1.min.js"></script>
+	<style>
+
+	.counties {
+	  stroke: black;
+	  stroke-width: 0.5px;
+	}
+
+
+	.states {
+	  fill: none;
+	  stroke: black;
+	  stroke-linejoin: round;
+	}
+
+	</style>
+ 
+</head>
+<body>
+	<script>
+		d3.select("body")
+		  .append("h1")
+		  .text("Small Businesses by County");
+	
+		//SVG width and height
+		var w = 960;
+		var h = 600;
+
+		//create SVG
+		var svg = d3.select("body")
+					.append("svg")
+					.attr("width", w)
+					.attr("height", h);
+
+
+		// add projection of us
+		var projection = d3.geoAlbersUsa()
+						   .scale(1000)
+						   .translate([w / 2, h / 2]);
+
+		// define geographic path generator
+		var path = d3.geoPath()
+		    		 .projection(projection);
+
+		// set up color scale
+		var color = d3.scaleThreshold()
+					.domain([0.01, 0.05, 0.1, 1.0 ])
+                    .range(['#ffffcc','#c2e699','#78c679','#31a354','#006837']);
+
+		//load and bind topojson & data
+		queue()
+			.defer(d3.json, "us.json")
+			.defer(d3.csv, "data/sbdata.csv")
+			.await(ready);
+
+		function ready(error, us, data) {
+
+		  	if (error) throw error;
+
+		  	//columns = id	ctyname	density	n50_99
+
+		  	var pairRateWithId = {};
+			var pairNameWithId = {};
+			var pairEmplWithId = {};
+			 
+			data.forEach(function(d) {
+			pairRateWithId[d.id] = d.density;
+			pairNameWithId[d.id] = d.ctyname;
+			pairEmplWithId[d.id] = d.n50_99;
+			});
+
+
+		      svg.append("g")
+			      .attr("class", "counties")
+			    .selectAll("path")
+			      .data(topojson.feature(us, us.objects.counties).features)
+			    .enter().append("path")
+			      .attr("d", path)
+			      .style("fill", function(d) {
+					return (pairRateWithId[d.id] === undefined ? "#dcdcdc": color (pairRateWithId[d.id]));
+					})
+
+			  svg.append("path")
+			      .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a.id !== b.id; }))
+			      .attr("class", "states")
+			      .attr("d", path);
+
+
+
+		};
+
+	</script>
+</body>

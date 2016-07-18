@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Small Businesses</title>
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	<script src="https://d3js.org/topojson.v1.min.js"></script>
+	<script src="https://d3js.org/queue.v1.min.js"></script>
+	<style>
+
+	.counties {
+		stroke: black;
+		stroke-width: 0.5px;
+	}
+
+
+	.states {
+		fill: none;
+		stroke: black;
+		stroke-linejoin: round;
+	}
+
+	.legend {
+	  	font-size: 12px;
+	}
+	 
+	div.tooltip {
+	  	position: absolute;
+		text-align: center;
+		width: 150px;
+		height: 25px;
+		padding: 2px;
+		font-size: 10px;
+		background: #FFFFE0;
+		border: 1px;
+		border-radius: 8px;
+		pointer-events: none;
+	}
+
+	</style>
+ 
+</head>
+<body>
+	<script>
+		d3.select("body")
+		  .append("h1")
+		  .text("Small Businesses by County");
+	
+		//SVG width and height
+		var w = 960;
+		var h = 500;
+
+		//create SVG
+		var svg = d3.select("body")
+					.append("svg")
+					.attr("width", w)
+					.attr("height", h)
+					.call(d3.zoom().on("zoom", function () {
+					   svg.attr("transform", d3.event.transform)
+					 }))
+					.append("g");
+
+
+		// add projection of us
+		var projection = d3.geoAlbersUsa()
+						   .scale(1000)
+						   .translate([w / 2, h / 2]);
+
+		// define geographic path generator
+		var path = d3.geoPath()
+		    		 .projection(projection);
+
+		// set up color scale
+		var color = d3.scaleThreshold()
+					.domain([0.01, 0.05, 0.1, 1.0 ])
+                    .range(['#ffffcc','#c2e699','#78c679','#31a354','#006837']);
+
+        //define tooltip
+        var div = d3.select("body").append("div")
+			.attr("class", "tooltip")
+			.style("opacity", 0);
+
+		//load and bind topojson & data
+		queue()
+			.defer(d3.json, "us.json")
+			.defer(d3.csv, "data/sbdata.csv")
+			.await(ready);
+
+		function ready(error, us, data) {
+
+		  	if (error) throw error;
+
+		  	//columns = id	ctyname	density	n50_99
+
+		  	var pairRateWithId = {};
+			var pairNameWithId = {};
+			var pairBusWithId = {};
+			 
+			data.forEach(function(d) {
+			pairRateWithId[d.id] = d.density;
+			pairNameWithId[d.id] = d.ctyname;
+			pairBusWithId[d.id] = d.n50_99;
+			});
+
+
+		      svg.append("g")
+			      .attr("class", "counties")
+			    .selectAll("path")
+			      .data(topojson.feature(us, us.objects.counties).features)
+			    .enter().append("path")
+			      .attr("d", path)
+			      .style("fill", function(d) {
+					return (pairRateWithId[d.id] === undefined ? "#dcdcdc": color (pairRateWithId[d.id]));
+					})
+			    .on("mouseover", function(d) {
+					d3.select(this).transition().duration(300).style("opacity", 1);
+					div.transition().duration(300)
+					.style("opacity", 1)
+					div.text(pairNameWithId[d.id] + " : " + pairBusWithId[d.id])
+					.style("left", (d3.event.pageX) + "px")
+					.style("top", (d3.event.pageY -30) + "px");
+					})
+					.on("mouseout", function() {
+					d3.select(this)
+					.transition().duration(300)
+					.style("opacity", 0.8);
+					div.transition().duration(300)
+					.style("opacity", 0);
+				})
+
+			  svg.append("path")
+			      .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a.id !== b.id; }))
+			      .attr("class", "states")
+			      .attr("d", path);
+
+
+
+		};
+
+		var legend_labels = ["0 - 0.01", "0.01 - 0.05", "0.05 - 0.1", "0.1 - 1.0", "1.0 or more" ]
+
+		var legend = svg.selectAll("g.legend")
+			.data([0, 0.01, 0.05, 0.1, 1.0 ])
+			.enter().append("g")
+			.attr("class", "legend");
+			 
+		var ls_w = 20, ls_h = 20;
+			 
+		legend.append("rect")
+			.attr("x", 20)
+			.attr("y", function(d, i){ return h - (i*ls_h) - 4*ls_h;})
+			.attr("width", ls_w)
+			.attr("height", ls_h)
+			.style("fill", function(d, i) { return color(d); })
+			.style("opacity", 0.8)
+			.style("stroke", "black");
+			 
+		legend.append("text")
+			.attr("x", 50)
+			.attr("y", function(d, i){ return h - (i*ls_h) - 3*ls_h - 4;})
+			.text(function(d, i){ return legend_labels[i]; });
+
+		legend.append("text")
+			.attr("x", 20)
+			.attr("y", h - (legend_labels.length) * ls_h - 3*ls_h - 4)
+			.text("Small Businesses per Square Mile");
+
+	</script>
+</body>

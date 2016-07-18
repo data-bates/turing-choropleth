@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Small Businesses</title>
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	<script src="https://d3js.org/topojson.v1.min.js"></script>
+	<style>
+
+	.counties {
+	  fill: #d3d3d3;
+	  stroke: #ededed;
+	}
+
+	.states {
+	  fill: none;
+	  stroke: #fff;
+	}
+
+	</style>
+ 
+</head>
+<body>
+	<script>
+		d3.select("body")
+		  .append("h1")
+		  .text("Small Businesses by County");
+	
+		//SVG width and height
+		var w = 960;
+		var h = 600;
+
+		//create SVG
+		var svg = d3.select("body")
+					.append("svg")
+					.attr("width", w)
+					.attr("height", h);
+
+
+		// add projection of us
+		var projection = d3.geoAlbersUsa()
+						   .scale(1000)
+						   .translate([w / 2, h / 2]);
+
+		// define geographic path generator
+		var path = d3.geoPath()
+		    		 .projection(projection);
+
+		//load and bind topojson
+		d3.json("us.json", function(error, us) {
+		  if (error) throw error;
+
+		      svg.append("g")
+			      .attr("class", "counties")
+			    .selectAll("path")
+			      .data(topojson.feature(us, us.objects.counties).features)
+			    .enter().append("path")
+			      .attr("d", path);
+
+			  svg.append("path")
+			      .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
+			      .attr("class", "states")
+			      .attr("d", path);
+
+		});
+
+	</script>
+</body>
