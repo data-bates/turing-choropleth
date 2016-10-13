@@ -26,22 +26,11 @@
 		<div class="reveal">
 			<div class="slides">
 				<section>
-					<img class="plain" src="images/blue_logo_full.png">
-				</section>
-				<section>
 				  <h2>Building a Choropleth Map using D3.js</h2>
 				  <br>
 				  	<p>Sara Bates</P>
 				  	<p>@batessara</p>
-				</section>
-				<section>
-					<h2>Setup</h2>
-					<ul>
-						<li>D3 Version 4: <a href="https://d3js.org/">d3js.org</a></li>
-						<li>Sublime Text: <a href="https://www.sublimetext.com/">sublimetext.com</a></li>
-						<li>Github: <a href="https://github.com/scbates/wimlds-choropleth">github.com/scbates/wimlds-choropleth</a></li>
-						<li>Web Server: <a href="https://www.npmjs.com/package/http-server">https://www.npmjs.com/package/http-server</a></li>
-
+				  	<p>github.com/scbates</p>
 				</section>
 				<section>
 					<h2>What is a Choropleth?</h2>
@@ -111,37 +100,39 @@ sb_density_df = sb_area_df[['id', 'ctyname', 'density', 'n50_99']]
 					<h2>D3 Basics</h2>
 					<p class="fragment">Data-Driven Documents</p>
 					<image class="fragment" src="images/dom.gif">
-					<p class="fragment">Use selectors to select an element for some action</p>
+					<p class="fragment">Load > Bind > Transform > Transition</p>
 				</section>
 
 				<section>
-					<h4>Using D3 Selectors to Manipulate the Document</h4>
+					<h4>Add Elements Using D3 Selection Methods</h4>
 					<pre><code class="hljs" data-trim contenteditable>
 &lt;!DOCTYPE html&gt;
 &lt;html lang="en"&gt;
 &lt;head&gt;
-	&lt;meta charset="utf-8"&gt;
-	&lt;title&gt;Small Businesses&lt;/title&gt;
-	&lt;script src="https://d3js.org/d3.v4.min.js"&gt;&lt;/script&gt;						 
+    &lt;meta charset="utf-8"&gt;
+    &lt;title&gt;Small Businesses&lt;/title&gt;
+    &lt;script src="https://d3js.org/d3.v4.min.js"&gt;&lt;/script&gt;
 &lt;/head&gt;
 &lt;body&gt;
-	&lt;script type="text/javascript"&gt;
-		d3.select("body")
-		  .append("h1")
-		  .text("Small Businesses by County");
-	&lt;/script&gt;
+    &lt;script type="text/javascript"&gt;
+        d3.select("body")
+            .append("h1")
+            .text("Small Businesses by County");
+    &lt;/script&gt;
 &lt;/body&gt;
 					</code></pre>
+				<!--
 					<pre><code class="hljs" data-trim contenteditable>
 $ python -m SimpleHTTPServer
 					</pre></code>
+				-->
 				</section>
 				<section>
 					<h2>SVG</h2>
 					<p>Scalable Vector Graphics</p>
 					<pre><code class="hljs" data-trim contenteditable>
 &lt;svg width="400" height="110"&gt;
-  &lt;rect width="300" height="100" style="fill:blue&gt;
+  &lt;rect width="300" height="100" fill="blue"&gt;
 &lt;/svg&gt;
 					</code></pre>
 
@@ -155,17 +146,17 @@ var h = 600;
 
 //create SVG
 var svg = d3.select("body")
-			.append("svg")
-			.attr("width", w)
-			.attr("height", h);
+    .append("svg")
+    .attr("width", w)
+    .attr("height", h);
 		
 //test with rectangle
 var rectangle = svg.append("rect")
-                   .attr("x", 10)
-                   .attr("y", 10)
-                   .attr("width", 50)
-                   .attr("height", 100)
-                   .attr("fill", "blue");
+    .attr("x", 10)
+    .attr("y", 10)
+    .attr("width", 50)
+    .attr("height", 100)
+    .attr("fill", "blue");
                     </code></pre>
                 </section>
                 <section>
@@ -179,34 +170,34 @@ var rectangle = svg.append("rect")
 					<pre><code class="hljs" data-trim contenteditable>
 // add projection of us
 var projection = d3.geoAlbersUsa()
-		.scale(1000)
-		.translate([w / 2, h / 2]);
+    .scale(1000)
+    .translate([w / 2, h / 2]);
 
 // define geographic path generator
 var path = d3.geoPath()
-    	.projection(projection);
+    .projection(projection);
 
 //load and bind topojson
 d3.json("us.json", function(error, us) {
-  if (error) throw error;
+    if (error) throw error;
 
-  // use multiple path elements for counties for styles/mouseover
-  svg.append("g")
-	 .attr("class", "counties")
-	 .selectAll("path")
-	 .data(topojson.feature(us, us.objects.counties).features)
-	 .enter()
-	 .append("path")
-	 .attr("d", path);
+    // use multiple path elements for counties for styles/mouseover
+    svg.append("g")
+        .attr("class", "counties")
+        .selectAll("path")
+        .data(topojson.feature(us, us.objects.counties).features)
+        .enter()
+        .append("path")
+        .attr("d", path);
 
-  // combine multiple features into a feature collection for speed
-  // use topojson.mesh to display interior state boundaries
-  svg.append("path")
-	 .datum(topojson.mesh(us, us.objects.states, 
-		function(a, b) { return a.id !== b.id; }))
-	 .attr("class", "states")
-     .attr("d", path);
-
+    // combine multiple features into a feature collection for speed
+    // use topojson.mesh to display interior state boundaries
+    svg.append("path")
+        .datum(topojson.mesh(us, us.objects.states, function(a, b) {
+            return a.id !== b.id;
+         }))
+        .attr("class", "states")
+        .attr("d", path);
 });
 					</code></pre>
 				</section>
@@ -235,42 +226,42 @@ d3.json("us.json", function(error, us) {
 
 // set up color scale
 var color = d3.scaleThreshold()
-			.domain([0.01, 0.05, 0.1, 1.0 ])
-            .range(['#ffffcc','#c2e699','#78c679','#31a354',
-            		'#006837']);
+    .domain([0.01, 0.05, 0.1, 1.0 ])
+    .range(['#ffffcc', '#c2e699', '#78c679', '#31a354', '#006837']);
 
 //load and bind topojson & data
 queue()
-	.defer(d3.json, "us.json")
-	.defer(d3.csv, "data/sbdata.csv")
-	.await(ready);
+    .defer(d3.json, "us.json")
+    .defer(d3.csv, "data/sbdata.csv")
+    .await(ready);
 
 function ready(error, us, data) {
 
   	if (error) throw error;
 
   	var pairRateWithId = {};
-	var pairNameWithId = {};
-	var pairEmplWithId = {};
+    var pairNameWithId = {};
+    var pairEmplWithId = {};
 			 
-	data.forEach(function(d) {
-		pairRateWithId[d.id] = d.density;
-		pairNameWithId[d.id] = d.ctyname;
-		pairEmplWithId[d.id] = d.n50_99;
-	});
+    data.forEach(function(d) {
+        pairRateWithId[d.id] = d.density;
+        pairNameWithId[d.id] = d.ctyname;
+        pairEmplWithId[d.id] = d.n50_99;
+    });
 
 
     svg.append("g")
        .attr("class", "counties")
        .selectAll("path")
 	   .data(topojson.feature(us, us.objects.counties).features)
-	   .enter()
-	   .append("path")
-	   .attr("d", path)
-	   .style("fill", function(d) {
-			return (pairRateWithId[d.id] === undefined ? 
-			"#dcdcdc": color (pairRateWithId[d.id]));
-		})
+       .enter()
+       .append("path")
+       .attr("d", path)
+       .style("fill", function(d) {
+            return (pairRateWithId[d.id] === undefined
+                ? "#dcdcdc"
+                : color (pairRateWithId[d.id]));
+		});
 
 // same method to build states
 					</code></pre>
@@ -299,35 +290,41 @@ function ready(error, us, data) {
 					<pre><code class="hljs" data-trim contenteditable>
 // add zoom to svg
 var svg = d3.select("body")
-			.append("svg")
-			.attr("width", w)
-			.attr("height", h)
-			.call(d3.zoom().on("zoom", function () {
-			   svg.attr("transform", d3.event.transform)
-			 }))
-			.append("g");
+    .append("svg")
+    .attr("width", w)
+    .attr("height", h)
+    .call(d3.zoom().on("zoom", function () {
+        svg.attr("transform", d3.event.transform)
+    }))
+    .append("g");
 
-//define tooltip
+// define tooltip
 var div = d3.select("body")
-			.append("div")
-			.attr("class", "tooltip")
-			.style("opacity", 0);
+    .append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
 
 // add mouseover to the svg group
 .on("mouseover", function(d) {
-	d3.select(this).transition().duration(300).style("opacity", 1);
-	div.transition().duration(300)
-       .style("opacity", 1)
+    d3.select(this)
+        .transition()
+        .duration(300)
+        .style("opacity", 1);
+    div.transition()
+        .duration(300)
+        .style("opacity", 1)
    	div.text(pairNameWithId[d.id] + " : " + pairBusWithId[d.id])
-		.style("left", (d3.event.pageX) + "px")
-		.style("top", (d3.event.pageY -30) + "px");
+   	    .style("left", (d3.event.pageX) + "px")
+   	    .style("top", (d3.event.pageY - 30) + "px");
 })
 .on("mouseout", function() {
-	d3.select(this)
-		.transition().duration(300)
-		.style("opacity", 0.8);
-	div.transition().duration(300)
-		.style("opacity", 0);
+    d3.select(this)
+        .transition()
+        .duration(300)
+        .style("opacity", 0.8);
+    div.transition()
+        .duration(300)
+        .style("opacity", 0);
 })
 					</code></pre>
 				</section>
@@ -335,33 +332,42 @@ var div = d3.select("body")
 					<h4>Add a Legend</h4>
 					<pre><code class="hljs" data-trim contenteditable>
 // create legend
-var legend_labels = ["0 - 0.01", "0.01 - 0.05", "0.05 - 0.1", "0.1 - 1.0", "1.0 or more" ]
+var legend_labels = ["0 - 0.01", "0.01 - 0.05", "0.05 - 0.1",
+    "0.1 - 1.0", "1.0 or more" ]
 
 var legend = svg.selectAll("g.legend")
-			.data([0, 0.01, 0.05, 0.1, 1.0 ])
-			.enter().append("g")
-			.attr("class", "legend");
+    .data([0, 0.01, 0.05, 0.1, 1.0 ])
+    .enter().append("g")
+    .attr("class", "legend");
 			 
 var ls_w = 20, ls_h = 20;
 			 
 legend.append("rect")
-			.attr("x", 20)
-			.attr("y", function(d, i){ return h - (i*ls_h) - 4*ls_h;})
-			.attr("width", ls_w)
-			.attr("height", ls_h)
-			.style("fill", function(d, i) { return color(d); })
-			.style("opacity", 0.8)
-			.style("stroke", "black");
+    .attr("x", 20)
+    .attr("y", function(d, i) {
+        return h - (i * ls_h) - 4 * ls_h;
+    })
+    .attr("width", ls_w)
+    .attr("height", ls_h)
+    .style("fill", function(d, i) {
+        return color(d);
+    })
+    .style("opacity", 0.8)
+    .style("stroke", "black");
 			 
 legend.append("text")
-			.attr("x", 50)
-			.attr("y", function(d, i){ return h - (i*ls_h) - 3*ls_h - 4;})
-			.text(function(d, i){ return legend_labels[i]; });
+    .attr("x", 50)
+    .attr("y", function(d, i) {
+        return h - (i * ls_h) - 3 * ls_h - 4;
+    })
+    .text(function(d, i) {
+        return legend_labels[i];
+    });
 
 legend.append("text")
-			.attr("x", 20)
-			.attr("y", h - (legend_labels.length) * ls_h - 3*ls_h - 4)
-			.text("Small Businesses per Square Mile");
+    .attr("x", 20)
+    .attr("y", h - (legend_labels.length) * ls_h - 3 * ls_h - 4)
+    .text("Small Businesses per Square Mile");
 					</code></pre>
 				</section>
 				<section>

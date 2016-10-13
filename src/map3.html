@@ -85,7 +85,7 @@
 			      .attr("d", path)
 			      .style("fill", function(d) {
 					return (pairRateWithId[d.id] === undefined ? "#dcdcdc": color (pairRateWithId[d.id]));
-					})
+					});
 
 			  svg.append("path")
 			      .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a.id !== b.id; }))
